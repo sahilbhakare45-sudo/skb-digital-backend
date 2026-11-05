@@ -31,7 +31,9 @@ from pydantic import BaseModel
 from database import SessionLocal, FileRecord, create_database
 
 
+# ==============================
 # CONFIGURATION
+# ==============================
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -72,6 +74,10 @@ download_serializer = (
 )
 
 
+# ==============================
+# FASTAPI APPLICATION
+# ==============================
+
 app = FastAPI(
     title="SKB DIGITAL API",
     description="Backend API for SKB DIGITAL",
@@ -79,11 +85,17 @@ app = FastAPI(
 )
 
 
+# ==============================
+# CORS CONFIGURATION
+# ==============================
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "http://127.0.0.1:5173"
+        "http://127.0.0.1:5173",
+        "https://skb-digital-2026-1105.web.app",
+        "https://skb-digital-2026-1105.firebaseapp.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -96,7 +108,9 @@ def startup():
     create_database()
 
 
+# ==============================
 # REQUEST MODELS
+# ==============================
 
 class LoginRequest(BaseModel):
     secret_key: str
@@ -106,7 +120,9 @@ class PasswordRequest(BaseModel):
     password: str
 
 
+# ==============================
 # PASSWORD SECURITY
+# ==============================
 
 def hash_password(password: str):
 
@@ -160,7 +176,9 @@ def validate_file_password(password: str):
         )
 
 
+# ==============================
 # ADMIN AUTHENTICATION
+# ==============================
 
 def verify_admin(authorization: str = ""):
 
@@ -197,7 +215,9 @@ def verify_admin(authorization: str = ""):
         )
 
 
+# ==============================
 # FILE RESPONSE FORMAT
+# ==============================
 
 def file_data(item):
 
@@ -215,7 +235,9 @@ def file_data(item):
     }
 
 
+# ==============================
 # HOME
+# ==============================
 
 @app.get("/")
 def home():
@@ -235,7 +257,9 @@ def health():
     }
 
 
+# ==============================
 # PUBLIC FILE LIST
+# ==============================
 
 @app.get("/files")
 def public_files():
@@ -263,7 +287,9 @@ def public_files():
         db.close()
 
 
-# PUBLIC SHARE PAGE DETAILS
+# ==============================
+# PUBLIC SHARE DETAILS
+# ==============================
 
 @app.get("/share/{file_id}")
 def get_share_details(file_id: str):
@@ -299,7 +325,9 @@ def get_share_details(file_id: str):
         db.close()
 
 
+# ==============================
 # ADMIN LOGIN
+# ==============================
 
 @app.post("/admin/login")
 def admin_login(data: LoginRequest):
@@ -329,7 +357,9 @@ def admin_login(data: LoginRequest):
     }
 
 
+# ==============================
 # CHECK ADMIN SESSION
+# ==============================
 
 @app.get("/admin/check")
 def admin_check(
@@ -344,7 +374,9 @@ def admin_check(
     }
 
 
-# ADMIN UPLOAD - PASSWORD MANDATORY
+# ==============================
+# ADMIN UPLOAD
+# ==============================
 
 @app.post("/admin/upload")
 def upload_file(
@@ -424,7 +456,9 @@ def upload_file(
         file.file.close()
 
 
+# ==============================
 # ADMIN FILE LIST
+# ==============================
 
 @app.get("/admin/files")
 def admin_files(
@@ -457,7 +491,9 @@ def admin_files(
         db.close()
 
 
-# ADMIN CHANGE PASSWORD - REMOVAL NOT ALLOWED
+# ==============================
+# ADMIN CHANGE FILE PASSWORD
+# ==============================
 
 @app.put("/admin/files/{file_id}/password")
 def update_file_password(
@@ -504,7 +540,9 @@ def update_file_password(
         db.close()
 
 
+# ==============================
 # ADMIN DELETE FILE
+# ==============================
 
 @app.delete("/admin/files/{file_id}")
 def delete_file(
@@ -551,7 +589,9 @@ def delete_file(
         db.close()
 
 
+# ==============================
 # VERIFY DOWNLOAD PASSWORD
+# ==============================
 
 @app.post("/download/{file_id}/verify")
 def verify_download_password(
@@ -617,7 +657,9 @@ def verify_download_password(
         db.close()
 
 
+# ==============================
 # DOWNLOAD FILE
+# ==============================
 
 @app.get("/download/{file_id}")
 def download_file(
@@ -644,7 +686,6 @@ def download_file(
                 detail="File not found"
             )
 
-        # Every file must have a password configured
         if not record.password_hash:
             raise HTTPException(
                 status_code=403,
